@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mafia Master - مدير لعبة المافيا الاحترافي</title>
+    <style>
+        /* CSS Variables & Theme */
+        :root {
+            --bg-deep: #0a0a0c;
+            --bg-card: #16161a;
+            --primary: #c41e3a; /* Blood Red */
+            --accent: #d4af37;  /* Gold */
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --glass: rgba(255, 255, 255, 0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+
+        /* Typography & Layout */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid var(--glass);
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(196, 30, 58, 0.4);
+        }
+
+        header p { color: var(--accent); font-weight: bold; }
+
+        /* Card Styles */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        .btn-gold { background: var(--accent); color: #000; }
+        .btn-gold:hover { box-shadow: 0 0 15px var(--accent); }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--text-dim);
+            color: var(--text-dim);
+        }
+
+        /* Forms */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: var(--accent); font-size: 0.9rem; }
+        input, select, textarea {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass);
+            padding: 12px;
+            color: white;
+            border-radius: 8px;
+            outline: none;
+        }
+        input:focus { border-color: var(--primary); }
+
+        /* Role Builder Grid */
+        .role-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .role-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass);
+            padding: 15px;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .role-card.team-mafia { border-right: 5px solid var(--primary); }
+        .role-card.team-citizens { border-right: 5px solid #2ecc71; }
+        .role-card.team-neutral { border-right: 5px solid var(--accent); }
+
+        .role-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .role-counter { display: flex; align-items: center; gap: 10px; }
+        .role-counter span { font-weight: bold; width: 20px; text-align: center; }
+
+        /* Reveal View */
+        .reveal-container {
+            perspective: 1000px;
+            width: 300px;
+            height: 450px;
+            margin: 40px auto;
+        }
+
+        .reveal-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .reveal-card.flipped { transform: rotateY(180deg); }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid var(--accent);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #1a1a1a 0%, #000 100%);
+        }
+
+        .card-back {
+            background: #16161a;
+            transform: rotateY(180deg);
+        }
+
+        /* Dashboard Styles */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .player-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.02);
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
+
+        .player-list-item.dead { opacity: 0.5; text-decoration: line-through; border-right: 4px solid #555; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            header h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>MAFIA MASTER</h1>
+        <p>إدارة اللعبة بعمق استراتيجي</p>
+    </header>
+
+    <!-- Phase 1: Setup Number of Players -->
+    <section id="setup-phase" class="phase">
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">تجهيز اللعبة الجديدة</h2>
+            <div class="form-group">
+                <label>عدد اللاعبين الإجمالي</label>
+                <input type="number" id="total-players-input" placeholder="أدخل عدد اللاعبين..." min="4" value="8">
+            </div>
+            <div class="form-group">
+                <label>أسماء اللاعبين (اختياري - اسم في كل سطر)</label>
+                <textarea id="player-names-input" rows="5" placeholder="لاعب 1&#10;لاعب 2..."></textarea>
+            </div>
+            <button class="btn" onclick="app.initRoleBuilder()">ابدأ بناء الأدوار ➔</button>
+        </div>
+    </section>
+
+    <!-- Phase 2: Role Builder -->
+    <section id="role-builder-phase" class="phase hidden">
+        <div class="card" style="border-bottom: 3px solid var(--accent);">
+            <div style="display:flex; justify-content: space-between; align-items:center;">
+                <h2>منشئ الأدوار الذكي</h2>
+                <div id="player-count-badge" class="btn btn-outline" style="cursor:default">
+                    0 / 0 لاعبين
+                </div>
+            </div>
+            <p style="color: var(--text-dim); margin-top:10px;">قم بتخصيص عدد كل دور أو إضافة أدوار جديدة تماماً.</p>
+        </div>
+
+        <div id="role-list" class="role-grid">
+            <!-- Roles will be injected here -->
+        </div>
+
+        <div class="card" style="margin-top: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-gold" onclick="app.addNewRole()">+ إضافة دور مخصص</button>
+            <button class="btn btn-outline" onclick="app.suggestBalance()">اقتراح توازن</button>
+            <button class="btn" style="margin-right: auto;" onclick="app.confirmRoles()">توزيع الأدوار وبدء اللعبة ➔</button>
+        </div>
+    </section>
+
+    <!-- Phase 3: Reveal Roles -->
+    <section id="reveal-phase" class="phase hidden">
+        <div class="card text-center" style="text-align: center;">
+            <h2 id="current-player-name-reveal">اسم اللاعب</h2>
+            <p>مرر الجهاز للاعب المذكور أعلاه ثم اضغط للكشف</p>
+            
+            <div class="reveal-container">
+                <div class="reveal-card" id="main-reveal-card" onclick="this.classList.toggle('flipped')">
+                    <div class="card-front">
+                        <div style="font-size: 5rem;">❓</div>
+                        <p style="margin-top: 20px;">اضغط للكشف</p>
+                    </div>
+                    <div class="card-back" id="role-info-back">
+                        <!-- Role info injected -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-gold" id="next-player-btn" onclick="app.nextPlayerReveal()">اللاعب التالي ➔</button>
+        </div>
+    </section>
+
+    <!-- Phase 4: Game Dashboard -->
+    <section id="dashboard-phase" class="phase hidden">
+        <div class="dashboard-grid">
+            <!-- Left: Players Status -->
+            <div class="card">
+                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 20px;">
+                    <h2>لوحة التحكم</h2>
+                    <div id="game-day-counter" style="color: var(--accent); font-weight:bold;">اليوم 1 - ليل 🌑</div>
+                </div>
+                
+                <div id="dashboard-player-list">
+                    <!-- Players injected -->
+                </div>
+            </div>
+
+            <!-- Right: Logs & Stats -->
+            <div class="card">
+                <h3>سجل الأحداث</h3>
+                <div id="game-logs" style="height: 300px; overflow-y: auto; font-size: 0.85rem; margin-top: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                    <p style="color: var(--accent)">تم بدء اللعبة بنجاح...</p>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3>الأدوار المتبقية</h3>
+                    <div id="remaining-roles-stats" style="margin-top: 10px;"></div>
+                </div>
+
+                <div style="margin-top: 20px; display:grid; gap: 10px;">
+                    <button class="btn btn-outline" onclick="app.toggleDayNight()">تبديل (ليل/نهار)</button>
+                    <button class="btn btn-primary" onclick="app.exportState()">تصدير إعدادات اللعبة</button>
+                    <button class="btn btn-gold" onclick="location.reload()">لعبة جديدة</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal for New Role -->
+<div id="role-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:100; padding: 20px;">
+    <div class="card" style="max-width: 500px; width: 100%;">
+        <h3>بناء دور جديد</h3>
+        <div class="form-group" style="margin-top:15px">
+            <label>اسم الدور</label>
+            <input type="text" id="new-role-name" placeholder="مثال: القناص">
+        </div>
+        <div class="form-group">
+            <label>الفريق</label>
+            <select id="new-role-team">
+                <option value="mafia">المافيا</option>
+                <option value="citizens">المواطنون</option>
+                <option value="neutral">مستقل</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>الوصف والقدرة</label>
+            <textarea id="new-role-desc" rows="3"></textarea>
+        </div>
+        <div style="display:flex; gap: 10px;">
+            <button class="btn" onclick="app.saveNewRole()">حفظ الدور</button>
+            <button class="btn btn-outline" onclick="document.getElementById('role-modal').classList.add('hidden')">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /**
+     * Mafia Master Engine
+     * Developed with Modular Architecture
+     */
+
+    const app = {
+        state: {
+            totalPlayers: 0,
+            playerNames: [],
+            rolesConfig: [],
+            assignedPlayers: [], // { name, role, isAlive, statusEffect }
+            currentRevealIndex: 0,
+            gameDay: 1,
+            isNight: true,
+            logs: []
+        },
+
+        // الأدوار الافتراضية الجاهزة
+        defaultRoles: [
+            { id: 'mafia', name: 'مافيا', team: 'mafia', icon: '👤', desc: 'يقتل لاعب كل ليلة مع فريقه.', count: 0, abilities: ['Night Kill'] },
+            { id: 'godfather', name: 'زعيم المافيا', team: 'mafia', icon: '🕶️', desc: 'لا يمكن للمحقق كشفه.', count: 0, abilities: ['Investigation Immunity'] },
+            { id: 'doctor', name: 'دكتور', team: 'citizens', icon: '💊', desc: 'ينقذ لاعب من القتل كل ليلة.', count: 0, abilities: ['Save'] },
+            { id: 'investigator', name: 'محقق', team: 'citizens', icon: '🔍', desc: 'يكشف هوية لاعب كل ليلة.', count: 0, abilities: ['Reveal'] },
+            { id: 'shield', name: 'حارس', team: 'citizens', icon: '🛡️', desc: 'يحمي لاعب من الهجمات.', count: 0, abilities: ['Protect'] },
+            { id: 'sniper', name: 'قناص', team: 'citizens', icon: '🔫', desc: 'يملك رصاصة واحدة للقتل.', count: 0, abilities: ['One-time Kill'] },
+            { id: 'witch', name: 'ساحر', team: 'neutral', icon: '🧙', desc: 'يستطيع تغيير أدوار اللاعبين.', count: 0, abilities: ['Chaos'] },
+            { id: 'serial-killer', name: 'قاتل متسلسل', team: 'neutral', icon: '🔪', desc: 'يقتل الجميع ليفوز وحده.', count: 0, abilities: ['Night Kill'] },
+            { id: 'citizen', name: 'مواطن', team: 'citizens', icon: '🏠', desc: 'ليس لديه قدرة سوى التصويت.', count: 0, abilities: [] }
+        ],
+
+        init() {
+            console.log("Mafia Master Initialized");
+            this.state.rolesConfig = JSON.parse(JSON.stringify(this.defaultRoles));
+        },
+
+        initRoleBuilder() {
+            const count = parseInt(document.getElementById('total-players-input').value);
+            const namesText = document.getElementById('player-names-input').value.trim();
+            
+            if (count < 4) {
+                alert("يجب أن يكون عدد اللاعبين 4 على الأقل.");
+                return;
+            }
+
+            this.state.totalPlayers = count;
+            this.state.playerNames = namesText ? namesText.split('\n').filter(n => n.trim() !== '') : [];
+            
+            // Fill default names if not enough provided
+            while(this.state.playerNames.length < count) {
+                this.state.playerNames.push(`لاعب ${this.state.playerNames.length + 1}`);
+            }
+
+            this.renderRoleList();
+            this.switchPhase('role-builder-phase');
+            this.updatePlayerCountDisplay();
+        },
+
+        renderRoleList() {
+            const container = document.getElementById('role-list');
+            container.innerHTML = '';
+
+            this.state.rolesConfig.forEach((role, index) => {
+                const roleCard = document.createElement('div');
+                roleCard.className = `role-card team-${role.team}`;
+                roleCard.innerHTML = `
+                    <div class="role-header">
+                        <span style="font-size: 1.5rem">${role.icon || '🎭'}</span>
+                        <strong style="color:white">${role.name}</strong>
+                        <span style="font-size: 0.7rem; color: var(--text-dim)">${this.getTeamName(role.team)}</span>
+                    </div>
+                    <p style="font-size: 0.8rem; height: 40px; overflow: hidden; margin-bottom: 10px; color: #ccc">${role.desc}</p>
+                    <div class="role-counter">
+                        <button class="btn btn-outline" style="padding: 5px 10px" onclick="app.updateRoleCount(${index}, -1)">-</button>
+                        <span>${role.count}</span>
+                        <button class="btn btn-outline" style="padding: 5px 10px" onclick="app.updateRoleCount(${index}, 1)">+</button>
+                    </div>
+                `;
+                container.appendChild(roleCard);
+            });
+        },
+
+        updateRoleCount(index, delta) {
+            const role = this.state.rolesConfig[index];
+            const newCount = role.count + delta;
+            
+            if (newCount >= 0) {
+                role.count = newCount;
+                this.renderRoleList();
+                this.updatePlayerCountDisplay();
+            }
+        },
+
+        updatePlayerCountDisplay() {
+            const currentTotal = this.state.rolesConfig.reduce((sum, r) => sum + r.count, 0);
+            const badge = document.getElementById('player-count-badge');
+            badge.innerText = `${currentTotal} / ${this.state.totalPlayers} لاعبين`;
+            
+            if (currentTotal === this.state.totalPlayers) {
+                badge.style.borderColor = "#2ecc71";
+                badge.style.color = "#2ecc71";
+            } else {
+                badge.style.borderColor = "var(--primary)";
+                badge.style.color = "var(--primary)";
+            }
+        },
+
+        getTeamName(team) {
+            const names = { mafia: 'مافيا', citizens: 'مواطنين', neutral: 'مستقل' };
+            return names[team] || team;
+        },
+
+        suggestBalance() {
+            const total = this.state.totalPlayers;
+            // Reset counts
+            this.state.rolesConfig.forEach(r => r.count = 0);
+
+            let mafiaCount = Math.floor(total / 4);
+            let docCount = 1;
+            let invCount = total > 6 ? 1 : 0;
+            let citizenCount = total - (mafiaCount + docCount + invCount);
+
+            this.setRoleCountById('mafia', mafiaCount);
+            this.setRoleCountById('doctor', docCount);
+            this.setRoleCountById('investigator', invCount);
+            this.setRoleCountById('citizen', citizenCount);
+
+            this.renderRoleList();
+            this.updatePlayerCountDisplay();
+        },
+
+        setRoleCountById(id, count) {
+            const role = this.state.rolesConfig.find(r => r.id === id);
+            if (role) role.count = count;
+        },
+
+        addNewRole() {
+            document.getElementById('role-modal').classList.remove('hidden');
+        },
+
+        saveNewRole() {
+            const name = document.getElementById('new-role-name').value;
+            const team = document.getElementById('new-role-team').value;
+            const desc = document.getElementById('new-role-desc').value;
+
+            if (!name) return;
+
+            this.state.rolesConfig.push({
+                id: 'custom-' + Date.now(),
+                name, team, desc,
+                icon: '✨',
+                count: 1,
+                abilities: ['Custom']
+            });
+
+            document.getElementById('role-modal').classList.add('hidden');
+            this.renderRoleList();
+            this.updatePlayerCountDisplay();
+        },
+
+        confirmRoles() {
+            const currentTotal = this.state.rolesConfig.reduce((sum, r) => sum + r.count, 0);
+            if (currentTotal !== this.state.totalPlayers) {
+                alert(`خطأ: مجموع الأدوار (${currentTotal}) لا يساوي عدد اللاعبين (${this.state.totalPlayers})`);
+                return;
+            }
+
+            this.assignRoles();
+            this.switchPhase('reveal-phase');
+            this.showCurrentPlayerReveal();
+        },
+
+        assignRoles() {
+            // Create a pool of roles
+            let rolePool = [];
+            this.state.rolesConfig.forEach(r => {
+                for(let i=0; i < r.count; i++) {
+                    rolePool.push({...r});
+                }
+            });
+
+            // Fisher-Yates Shuffle
+            for (let i = rolePool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [rolePool[i], rolePool[j]] = [rolePool[j], rolePool[i]];
+            }
+
+            // Assign to players
+            this.state.assignedPlayers = this.state.playerNames.map((name, index) => ({
+                name: name,
+                role: rolePool[index],
+                isAlive: true,
+                statusEffect: null
+            }));
+        },
+
+        showCurrentPlayerReveal() {
+            const player = this.state.assignedPlayers[this.state.currentRevealIndex];
+            document.getElementById('current-player-name-reveal').innerText = player.name;
+            document.getElementById('main-reveal-card').classList.remove('flipped');
+            
+            const infoBack = document.getElementById('role-info-back');
+            infoBack.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 10px;">${player.role.icon}</div>
+                <h2 style="color: var(--accent)">${player.role.name}</h2>
+                <p style="margin: 10px 0; font-weight: bold; color: ${player.role.team === 'mafia' ? 'var(--primary)' : '#2ecc71'}">الفريق: ${this.getTeamName(player.role.team)}</p>
+                <p style="font-size: 0.9rem; color: #ccc;">${player.role.desc}</p>
+                <div style="margin-top: 20px; border-top: 1px solid var(--glass); padding-top: 10px; width: 100%;">
+                    <small>سرّي للغاية - لا تري الكارت لأحد</small>
+                </div>
+            `;
+
+            if (this.state.currentRevealIndex === this.state.assignedPlayers.length - 1) {
+                document.getElementById('next-player-btn').innerText = "بدء لوحة التحكم ➔";
+            }
+        },
+
+        nextPlayerReveal() {
+            if (this.state.currentRevealIndex < this.state.assignedPlayers.length - 1) {
+                this.state.currentRevealIndex++;
+                this.showCurrentPlayerReveal();
+            } else {
+                this.initDashboard();
+                this.switchPhase('dashboard-phase');
+            }
+        },
+
+        initDashboard() {
+            this.renderDashboardPlayers();
+            this.renderStats();
+            this.logEvent("بدأت اللعبة. ليلة سعيدة للجميع (إلا الضحية).");
+        },
+
+        renderDashboardPlayers() {
+            const container = document.getElementById('dashboard-player-list');
+            container.innerHTML = '';
+
+            this.state.assignedPlayers.forEach((player, index) => {
+                const item = document.createElement('div');
+                item.className = `player-list-item ${player.isAlive ? '' : 'dead'}`;
+                item.innerHTML = `
+                    <div>
+                        <strong>${player.name}</strong>
+                        <span style="margin-right: 10px; color: var(--text-dim); font-size: 0.8rem">(${player.role.name})</span>
+                    </div>
+                    <div style="display:flex; gap: 5px;">
+                        ${player.isAlive ? 
+                            `<button class="btn btn-outline" style="padding: 4px 10px; border-color: var(--primary); color: var(--primary)" onclick="app.killPlayer(${index})">قتل</button>` : 
+                            `<button class="btn btn-outline" style="padding: 4px 10px;" onclick="app.revivePlayer(${index})">إحياء</button>`
+                        }
+                        <button class="btn btn-outline" style="padding: 4px 10px;" onclick="app.logEvent('تم التحقق من ${player.name}')">🔍</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        },
+
+        killPlayer(index) {
+            this.state.assignedPlayers[index].isAlive = false;
+            this.logEvent(`مات اللاعب: ${this.state.assignedPlayers[index].name} (${this.state.assignedPlayers[index].role.name})`);
+            this.renderDashboardPlayers();
+            this.renderStats();
+            this.checkWinCondition();
+        },
+
+        revivePlayer(index) {
+            this.state.assignedPlayers[index].isAlive = true;
+            this.logEvent(`تم إحياء اللاعب: ${this.state.assignedPlayers[index].name}`);
+            this.renderDashboardPlayers();
+            this.renderStats();
+        },
+
+        toggleDayNight() {
+            this.state.isNight = !this.state.isNight;
+            if (this.state.isNight) this.state.gameDay++;
+            
+            const status = this.state.isNight ? 'ليل 🌑' : 'نهار ☀️';
+            document.getElementById('game-day-counter').innerText = `اليوم ${this.state.gameDay} - ${status}`;
+            this.logEvent(`انتقلنا إلى ${status}`);
+        },
+
+        logEvent(msg) {
+            const logContainer = document.getElementById('game-logs');
+            const p = document.createElement('p');
+            p.style.marginBottom = "5px";
+            p.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+            p.style.paddingBottom = "3px";
+            p.innerHTML = `<span style="color:var(--accent)">[${this.state.isNight ? 'ليل' : 'نهار'}]</span> ${msg}`;
+            logContainer.prepend(p);
+        },
+
+        renderStats() {
+            const statsContainer = document.getElementById('remaining-roles-stats');
+            const counts = {};
+            this.state.assignedPlayers.filter(p => p.isAlive).forEach(p => {
+                counts[p.role.team] = (counts[p.role.team] || 0) + 1;
+            });
+
+            statsContainer.innerHTML = `
+                <div style="display:flex; gap: 10px; font-size: 0.9rem;">
+                    <div style="color:var(--primary)">المافيا: ${counts.mafia || 0}</div>
+                    <div style="color:#2ecc71">المواطنين: ${counts.citizens || 0}</div>
+                    <div style="color:var(--accent)">مستقلين: ${counts.neutral || 0}</div>
+                </div>
+            `;
+        },
+
+        checkWinCondition() {
+            const alive = this.state.assignedPlayers.filter(p => p.isAlive);
+            const mafia = alive.filter(p => p.role.team === 'mafia').length;
+            const others = alive.length - mafia;
+
+            if (mafia === 0) {
+                alert("فوز المواطنين! 🏆 تم القضاء على المافيا.");
+                this.logEvent("انتهت اللعبة: فوز المواطنين!");
+            } else if (mafia >= others) {
+                alert("فوز المافيا! 🔪 سيطروا على المدينة.");
+                this.logEvent("انتهت اللعبة: فوز المافيا!");
+            }
+        },
+
+        switchPhase(phaseId) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.add('hidden'));
+            document.getElementById(phaseId).classList.remove('hidden');
+            window.scrollTo(0,0);
+        },
+
+        exportState() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "mafia_game_save.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+    };
+
+    // Initialize the app on load
+    window.onload = () => app.init();
+
+</script>
+
+</body>
+</html>
